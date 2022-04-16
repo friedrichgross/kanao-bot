@@ -27,6 +27,8 @@ bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
+    await restore_reaction_roles()
+
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -45,7 +47,7 @@ async def on_raw_reaction_add(payload):
 @bot.event
 async def on_raw_reaction_remove(payload):
     role = await get_role(payload)
-    
+
     if role is not None:
         try:
             guild = bot.get_guild(payload.guild_id)
@@ -114,5 +116,29 @@ async def get_role(payload):
             # TODO: Remove reaction?
             print("Role for Emoji '" + payload.emoji.name + "' not found.")
             return
+
+async def restore_reaction_roles():
+    channel = bot.get_channel(964995181969567754)
+    msg = await channel.fetch_message(964999724820213820)
+    guild = bot.get_guild(131235079786594304)
+
+    for reaction in msg.reactions:
+        try:
+            async for member in reaction.users():
+                # Check if user already has the role:
+                role = discord.utils.get(guild.roles, name=roles[reaction.emoji])
+                if not role in member.roles:
+                    print("User '" + member.name + "' does not yet have the '" + reaction.emoji + "' role, adding now...")
+                    try:
+                        await member.add_roles(role)
+                        print("Selfroles-restore: Added role '" + role.name + "' to user '" + member.name + "'.")
+                    except discord.HTTPException:
+                        # TODO: Error handling
+                        pass
+                else:
+                    print("User '" + member.name + "' already had the '" + reaction.emoji + "' role.")
+
+        except discord.HTTPException:
+            print("Couldn't fetch users for reaction-roles")
 
 bot.run(BOT_TOKEN)
