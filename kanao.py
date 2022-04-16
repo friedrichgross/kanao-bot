@@ -12,17 +12,55 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from discord.utils import get
 
+from reaction_roles import roles
+
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+# BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = "REDACTED" #TODO: Delete
 
 intents = discord.Intents.default()
+intents.members = True
 bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 
 
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    role = await get_role(payload)
+
+    if role is not None:
+        try:
+            await payload.member.add_roles(role)
+            print("Selfroles: Added role '" + role.name + "' to user '" + payload.member.name + "'.")
+        except discord.HTTPException:
+            # TODO: Errorhandling
+            pass
+    else:
+        print("Didn't find role for '" + roles[payload.emoji.name] + "'.")
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    role = await get_role(payload)
+    
+    if role is not None:
+        try:
+            guild = bot.get_guild(payload.guild_id)
+            member = guild.get_member(payload.user_id)
+            if member is None:
+                print("Could not find user")
+                return
+
+            await member.remove_roles(role)
+            print("Selfroles: Removed role '" + role.name + "' from user '" + member.name + "'.")
+        except discord.HTTPException:
+            # TODO: Errorhandling
+            pass
+    else:
+        print("Role not found for Emoji '" + payload.emoji.name + "'")
 
 @bot.command()
 async def help(ctx):
@@ -63,5 +101,18 @@ async def avatar(ctx):
     for user in ctx.message.mentions:
         await ctx.send(user.avatar_url)
 
+async def get_role(payload):
+    if payload.message_id == 964999724820213820:
+        guild = bot.get_guild(payload.guild_id)
+        if guild is None:
+            print("No guild/server??")
+            # TODO: Logging
+
+        try:
+            return discord.utils.get(guild.roles, name=roles[payload.emoji.name])
+        except KeyError:
+            # TODO: Remove reaction?
+            print("Role for Emoji '" + payload.emoji.name + "' not found.")
+            return
 
 bot.run(BOT_TOKEN)
