@@ -160,4 +160,9 @@ async def restore_reaction_roles():
             except discord.HTTPException:
                 print("Selfroles-restore: Couldn't fetch users for reaction-roles")
 
-bot.run(BOT_TOKEN)
+def main():
+    bot.run(BOT_TOKEN)
+
+
+if __name__ == "__main__":
+    main()
