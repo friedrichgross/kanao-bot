@@ -17,7 +17,6 @@ from reaction_roles import *
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-SERVER_ID = int(os.getenv('SERVER_ID'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -28,7 +27,10 @@ bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
     if SERVER_ID is not None:
-        await restore_reaction_roles()
+        print("Checking if we missed any selfroles while offline...")
+        await restore_REACTION_ROLES_MAP()
+    else:
+        print("No SERVER_ID set, skipping reaction-role restoration.")
     print(f'{bot.user} has finished initialising!')
 
 @bot.event
@@ -41,8 +43,6 @@ async def on_raw_reaction_add(payload):
         except discord.HTTPException:
             # TODO: Errorhandling
             pass
-    else:
-        print("Role not implemented??")
 
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -53,7 +53,7 @@ async def on_raw_reaction_remove(payload):
             guild = bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             if member is None:
-                print("Could not find user")
+                print("Selfroles: Could not find user")
                 return
 
             await member.remove_roles(role)
@@ -61,9 +61,6 @@ async def on_raw_reaction_remove(payload):
         except discord.HTTPException:
             # TODO: Error handling
             pass
-
-    else:
-        print("Role not implemented??")
 
 @bot.command()
 async def help(ctx):
@@ -105,45 +102,49 @@ async def avatar(ctx):
         await ctx.send(user.avatar_url)
 
 async def get_role(payload):
-    if payload.message_id in reaction_role_msg_ids.values():
+    if payload.message_id in REACTION_ROLE_MSG_IDS.values():
         guild = bot.get_guild(payload.guild_id)
         if guild is None:
-            print("No guild/server??")
+            print("Selfroles: No guild/server??")
             # TODO: Logging
             return
 
         try:
-            return discord.utils.get(guild.roles, name=reaction_roles[payload.emoji.name])
+            return discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[payload.emoji.name])
         except KeyError:
-            print("Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
+            print("Selfroles: Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
             channel = bot.get_channel(payload.channel_id)
             msg = await channel.fetch_message(payload.message_id)
             for reaction in msg.reactions:
                 if str(reaction.emoji) == str(payload.emoji):
                     await reaction.clear()
-            print("Cleared reaction")
+            print("Selfroles: Cleared reaction")
             return
 
-async def restore_reaction_roles():
-    for channel_id in reaction_role_msg_ids.keys():
+async def restore_REACTION_ROLES_MAP():
+    for channel_id in REACTION_ROLE_MSG_IDS.keys():
         channel = bot.get_channel(channel_id)
-        msg = await channel.fetch_message(reaction_role_msg_ids[channel_id])
-        guild = bot.get_guild(SERVER_ID)
+        if channel is None:
+            print("Selfroles-restore: Could not restore reaction roles: channel_id '" + str(channel_id) + "' not found. Quitting.")
+            return
+
+        msg = await channel.fetch_message(REACTION_ROLE_MSG_IDS[channel_id])
+        guild = bot.get_guild(int(SERVER_ID))
 
         for reaction in msg.reactions:
             try:
                 async for member in reaction.users():
                     # Check if user already has the role:
                     try:
-                        role = discord.utils.get(guild.roles, name=reaction_roles[reaction.emoji])
+                        role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
                     except KeyError:
-                        print("Role for Emoji '" + reaction.emoji.name + "' not found, removing reaction.")
+                        print("Selfroles-restore: Role for Emoji '" + reaction.emoji.name + "' not found, removing reaction.")
                         await reaction.clear()
-                        print("Cleared reaction")
+                        print("Selfroles-restore: Cleared reaction")
                         continue
 
                     if not role in member.roles:
-                        print("User '" + member.name + "' does not yet have the '" + reaction.emoji + "' role , adding now...")
+                        print("Selfroles-restore: User '" + member.name + "' does not yet have the '" + reaction.emoji + "' role , adding now...")
                         try:
                             await member.add_roles(role)
                             print("Selfroles-restore: Added role '" + role.name + "' to user '" + member.name + "'.")
@@ -152,6 +153,6 @@ async def restore_reaction_roles():
                             pass
 
             except discord.HTTPException:
-                print("Couldn't fetch users for reaction-roles")
+                print("Selfroles-restore: Couldn't fetch users for reaction-roles")
 
 bot.run(BOT_TOKEN)

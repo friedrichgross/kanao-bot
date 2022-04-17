@@ -1,10 +1,13 @@
-# Channel_id : msg_id
-reaction_role_msg_ids = {
+# The server/guild ID (this is needed for checking missed self-roles)
+SERVER_ID=131235079786594304
+
+# The reaction-roles Channels and IDs. Format: [Channel_id : msg_id]
+REACTION_ROLE_MSG_IDS = {
     964995181969567754 : 964999724820213820
 }
 
-# reaction : role
-reaction_roles = {
+# The Reaction Roles. Format: [reaction : role]
+REACTION_ROLES_MAP = {
     # Pflichtfächer:
     "👥" : "smk",
     "🖥️" : "hwk",
