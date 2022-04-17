@@ -6,6 +6,8 @@ REACTION_ROLE_MSG_IDS = {
     964995181969567754 : 964999724820213820
 }
 
+REACTION_ROLE_RESTORE_IGNORED_MEMBERS = ["ScarfedFox"]
+
 # The Reaction Roles. Format: [reaction : role]
 REACTION_ROLES_MAP = {
     # Pflichtfächer:

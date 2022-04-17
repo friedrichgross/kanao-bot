@@ -134,6 +134,11 @@ async def restore_REACTION_ROLES_MAP():
         for reaction in msg.reactions:
             try:
                 async for member in reaction.users():
+                    # Skip myself bc I don't want to get EVERY role all the time
+                    if member.name in REACTION_ROLE_RESTORE_IGNORED_MEMBERS:
+                        # print("Selfroles-restore: Skipping member '" + member.name + "' because of REACTION_ROLE_RESTORE_IGNORED_MEMBERS.")
+                        continue
+
                     # Check if user already has the role:
                     try:
                         role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
