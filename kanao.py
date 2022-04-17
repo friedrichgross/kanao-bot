@@ -16,10 +16,8 @@ from reaction_roles import *
 
 load_dotenv()
 
-# BOT_TOKEN = os.getenv('BOT_TOKEN')
-BOT_TOKEN = "REDACTED" #TODO: Delete
-# SERVER_ID = os.getenv('SERVER_ID')
-SERVER_ID = 131235079786594304 # TODO: Delete
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+SERVER_ID = os.getenv('SERVER_ID')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -29,7 +27,8 @@ bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
-    await restore_reaction_roles()
+    if SERVER_ID is not None:
+        await restore_reaction_roles()
     print(f'{bot.user} has finished initialising!')
 
 
