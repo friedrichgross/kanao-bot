@@ -28,7 +28,7 @@ async def on_ready():
     print(f'{bot.user} has connected to Discord!')
     if SERVER_ID is not None:
         print("Checking if we missed any selfroles while offline...")
-        await restore_REACTION_ROLES_MAP()
+        await restore_reaction_roles()
     else:
         print("No SERVER_ID set, skipping reaction-role restoration.")
     print(f'{bot.user} has finished initialising!')
@@ -121,7 +121,7 @@ async def get_role(payload):
             print("Selfroles: Cleared reaction")
             return
 
-async def restore_REACTION_ROLES_MAP():
+async def restore_reaction_roles():
     for channel_id in REACTION_ROLE_MSG_IDS.keys():
         channel = bot.get_channel(channel_id)
         if channel is None:
