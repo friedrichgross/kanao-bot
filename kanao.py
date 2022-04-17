@@ -17,7 +17,7 @@ from reaction_roles import *
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-SERVER_ID = os.getenv('SERVER_ID')
+SERVER_ID = int(os.getenv('SERVER_ID'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -31,11 +31,9 @@ async def on_ready():
         await restore_reaction_roles()
     print(f'{bot.user} has finished initialising!')
 
-
 @bot.event
 async def on_raw_reaction_add(payload):
     role = await get_role(payload)
-
     if role is not None:
         try:
             await payload.member.add_roles(role)
@@ -43,7 +41,8 @@ async def on_raw_reaction_add(payload):
         except discord.HTTPException:
             # TODO: Errorhandling
             pass
-
+    else:
+        print("Role not implemented??")
 
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -62,6 +61,9 @@ async def on_raw_reaction_remove(payload):
         except discord.HTTPException:
             # TODO: Error handling
             pass
+
+    else:
+        print("Role not implemented??")
 
 @bot.command()
 async def help(ctx):
@@ -108,6 +110,7 @@ async def get_role(payload):
         if guild is None:
             print("No guild/server??")
             # TODO: Logging
+            return
 
         try:
             return discord.utils.get(guild.roles, name=reaction_roles[payload.emoji.name])
@@ -116,7 +119,7 @@ async def get_role(payload):
             channel = bot.get_channel(payload.channel_id)
             msg = await channel.fetch_message(payload.message_id)
             for reaction in msg.reactions:
-                if reaction.emoji == payload.emoji:
+                if str(reaction.emoji) == str(payload.emoji):
                     await reaction.clear()
             print("Cleared reaction")
             return
