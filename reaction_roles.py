@@ -3,13 +3,21 @@ SERVER_ID=918498098647539712
 
 # The reaction-roles Channels and IDs. Format: [Channel_id : msg_id]
 REACTION_ROLE_MSG_IDS = {
-    964905461235208192 : 965064794157760512
+    964905461235208192 : 965064794157760512,
+    965143876547510316 : 965143984576012381,
+    965145157781565451 : 965145194678878209,
+    965146070625706046 : 965146181632135178,
 }
 
 REACTION_ROLE_RESTORE_IGNORED_MEMBERS = ["ScarfedFox", "Seven Oaks"]
 
 # The Reaction Roles. Format: [reaction : role]
 REACTION_ROLES_MAP = {
+    # Rules:
+    "👍" : "dulli",
+    "☑️" : "dulli",
+    "✅" : "Member",
+
     # Pflichtfächer:
     "👥" : "smk",
     "🖥️" : "hwk",
