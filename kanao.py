@@ -94,7 +94,6 @@ async def on_message(message):
         if not ctx.author.guild_permissions.mention_everyone:
             await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
 
-
 """
 
 help command 
@@ -106,6 +105,24 @@ async def help(ctx):
                     'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' + 
                     'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
                     '```', reference=ctx.message)
+
+
+"""
+
+http-cat command 
+
+"""
+# Sauce: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+valid_http_status_codes = ["100", "200", "201", "204", "206", "301", "302", "303", "304", "307", "308", "401", "403", "404", "406", "407", "409", "410", "412", "416", "418", "425", "451", "500", "501", "502", "503", "504"]
+
+@bot.command()
+async def cat(ctx, arg='UwU'):
+    if arg in valid_http_status_codes:
+        await ctx.send(f'https://http.cat/{arg}')
+    else:
+        await ctx.send('You must supply a valid numeric http status code!')
+        await ctx.send('https://http.cat/400')
+
 
 """
 
