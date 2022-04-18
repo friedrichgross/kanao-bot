@@ -18,11 +18,21 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
+"""
+
+get intents from discord, privileged intents are needed
+
+"""
+
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 
+"""
 
+Check for missed reactions while offline
+
+"""
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -32,6 +42,9 @@ async def on_ready():
     else:
         print("No SERVER_ID set, skipping reaction-role restoration.")
     print(f'{bot.user} has finished initialising!')
+    await bot.change_presence(activity=discord.Game(name="k!help"))
+
+
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -41,7 +54,7 @@ async def on_raw_reaction_add(payload):
             await payload.member.add_roles(role)
             print("Selfroles: Added role '" + role.name + "' to user '" + payload.member.name + "'.")
         except discord.HTTPException:
-            # TODO: Errorhandling
+            payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
             pass
 
 @bot.event
@@ -59,15 +72,47 @@ async def on_raw_reaction_remove(payload):
             await member.remove_roles(role)
             print("Selfroles: Removed role '" + role.name + "' from user '" + member.name + "'.")
         except discord.HTTPException:
-            # TODO: Error handling
+            payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
             pass
 
-@bot.command()
+
+"""
+
+check if a message tries to role mention without using k!pingRole
+advise user if thats the case
+Extensible for further message checks
+
+"""
+@bot.event
+async def on_message(message):
+    if message.author.bot: return
+    ctx = await bot.get_context(message)
+    if ctx.valid:
+        await bot.process_commands(message)
+        return
+    if ctx.message.raw_role_mentions:
+        if not ctx.author.guild_permissions.mention_everyone:
+            await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
+
+
+"""
+
+help command 
+
+"""
+@bot.command(aliases=['h'])
 async def help(ctx):
     await ctx.send( '```' + 'k!av @mention to get someones pfp\n' + 
                     'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' + 
-                    'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)' + '```')
+                    'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
+                    '```', reference=ctx.message)
 
+"""
+
+allows purging of up to 100 messages. only mods and admins.
+factors in the commanding messages automatically 
+
+"""
 @bot.command()
 @commands.has_any_role("Moderator", "Admin")
 async def purge(ctx, arg):
@@ -76,17 +121,25 @@ async def purge(ctx, arg):
     async for message in ctx.history(limit=to_delete):
         delete_list.append(message)
     await ctx.channel.delete_messages(delete_list)
+    # TODO: LOG THIS
 
 @purge.error
 async def purge_error(ctx, error):
     if isinstance(error, commands.MissingAnyRole):
-        await ctx.send("No perms? 🤨", delete_after=5)
+        await ctx.send("No perms? 🤨", delete_after=10, reference=ctx.message)
 
-@bot.command()
+
+"""
+
+method to make the user use the bot to ping roles.
+this ensures we can log pings to roles, and that people only ping roles they have themselves.
+
+"""
+@bot.command(aliases=['pr'])
 async def pingRole(ctx, arg):
     roleRawID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
-    if not roleRawID:                               # will be empty if @everyone/@here
-        await ctx.send("Youre not allowed to do that!")
+    if not roleRawID:                               # will be empty if @everyone/@here or if no mention (duh)
+        await ctx.send("Make sure to put @role and a spacebar behind, so it looks like a ping. \nI wont ping @ everyone or @ here.", reference=ctx.message)
         return                                      
 
     roleName = get(ctx.guild.roles , id=roleRawID[0])
@@ -96,7 +149,12 @@ async def pingRole(ctx, arg):
     else :
         await ctx.send('You need to have the role yourself to have me ping it!')
 
-@bot.command(name='av')
+"""
+
+gives the mentioned users pfp
+
+"""
+@bot.command(aliases=['av'])
 async def avatar(ctx):
     for user in ctx.message.mentions:
         await ctx.send(user.avatar_url)
