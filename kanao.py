@@ -4,7 +4,6 @@ Intent is to replace external bots in our FS Servers
 
 Licensed under GPL-3.0-only
 """
-from typing import Any
 
 import discord
 import os
@@ -30,12 +29,12 @@ get intents from discord, privileged intents are needed
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
+
 """
 
 Check for missed reactions while offline
 
 """
-
 
 @bot.event
 async def on_ready():
@@ -50,7 +49,7 @@ async def on_ready():
 
 """
 
-Selfroles add
+Reaction roles add
 
 """
 
@@ -68,23 +67,23 @@ async def on_raw_reaction_add(payload):
 
 """
 
-Selfroles remove
+Reaction roles remove
 
 """
 @bot.event
 async def on_raw_reaction_remove(payload):
-    role = await get_role(payload)
+    _role = await get_role(payload)
 
-    if role is not None:
+    if _role is not None:
         try:
-            guild = bot.get_guild(payload.guild_id)
-            member = guild.get_member(payload.user_id)
-            if member is None:
-                logger.error(f"Could not find user '{member.name}'")
+            _guild = bot.get_guild(payload.guild_id)
+            _member = _guild.get_member(payload.user_id)
+            if _member is None:
+                logger.error(f"Could not find user '{_member.name}'")
                 return
 
-            await member.remove_roles(role)
-            logger.info(f"Removed role '{role.name}' from user '{member.name}'")
+            await _member.remove_roles(_role)
+            logger.info(f"Removed role '{_role.name}' from user '{_member.name}'")
         except discord.HTTPException:
             logger.error("HTTPException")
             payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
@@ -103,13 +102,13 @@ Extensible for further message checks
 async def on_message(message):
     if message.author.bot:
         return
-    ctx = await bot.get_context(message)
-    if ctx.valid:
+    _ctx = await bot.get_context(message)
+    if _ctx.valid:
         await bot.process_commands(message)
         return
-    if ctx.message.raw_role_mentions:
-        if not ctx.author.guild_permissions.mention_everyone:
-            logger.warning(f"User {ctx.author.name} tried to use raw role mentions without permissions in channel '{ctx.channel.name}'")
+    if _ctx.message.raw_role_mentions:
+        if not _ctx.author.guild_permissions.mention_everyone:
+            logger.warning(f"User {_ctx.author.name} tried to use raw role mentions without permissions in channel '{_ctx.channel.name}'")
             await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
 
 
@@ -152,42 +151,19 @@ async def on_raw_bulk_message_delete(payload):
     try:
         await _modLogChannel.send("```!! BULK DELETE EVENT !!" + "\n\n" + "Channel :" + _eventChannel.name + "\n\n"
                                  "Trying to get possibly cached messages: ```")
-
-        for msg in payload.cached_messages:
-            await _modLogChannel.send("```" + msg.author.name + ":\n" + msg.content + "\n" + "```")
+        for _msg in payload.cached_messages:
+            await _modLogChannel.send("```" + _msg.author.name + ":\n" + _msg.content + "\n" + "```")
 
     except:
         await _modLogChannel.send("Failed getting any cached messages.")
 
 @bot.command(aliases=['h'])
-async def help(ctx):
+async def custom_help(ctx):
     logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
-    await ctx.send( '```' + 'k!av @mention to get someones pfp\n' + 
+    await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
                     'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' + 
                     'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
                     '```', reference=ctx.message)
-
-@bot.command()
-async def cat(ctx, arg='UwU'):
-    # Sauce: https://http.cat
-    valid_http_status_codes = [
-     "100", "101", "102", "200", "201", "202", "203", "204", "206",
-     "207", "300", "301", "302", "303", "304", "305", "307", "308",
-     "400", "401", "402", "403", "404", "405", "406", "407", "408",
-     "409", "410", "411", "412", "413", "414", "415", "416", "417",
-     "418", "420", "421", "422", "424", "425", "426", "429", "431",
-     "444", "450", "451", "497", "498", "499", "500", "501", "502",
-     "503", "504", "506", "507", "508", "509", "510", "511", "521",
-     "523", "525", "599"
-    ]
-
-    if arg in valid_http_status_codes:
-        await ctx.send(f'https://http.cat/{arg}')
-        logger.info(f"Sent http-cat with statuscode '{arg}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-    else:
-        logger.warning(f"Invalid status code ({arg}) from user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send('You must supply a valid numeric http status code!')
-        await ctx.send('https://http.cat/400')
 
 """
 
@@ -200,12 +176,12 @@ factors in the commanding messages automatically
 @bot.command()
 @commands.has_any_role("Moderator", "Admin")
 async def purge(ctx, arg):
-    to_delete = int(arg) + 1
-    delete_list = []
-    async for message in ctx.history(limit=to_delete):
-        delete_list.append(message)
-    logger.info(f"Purging {to_delete} messages for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-    await ctx.channel.delete_messages(delete_list)
+    _to_delete = int(arg) + 1
+    _delete_list = []
+    async for message in ctx.history(limit=_to_delete):
+        _delete_list.append(message)
+    logger.info(f"Purging {_to_delete} messages for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+    await ctx.channel.delete_messages(_delete_list)
 
 @purge.error
 async def purge_error(ctx, error):
@@ -223,19 +199,19 @@ this ensures we can log pings to roles, and that people only ping roles they hav
 
 @bot.command(aliases=['pr'])
 async def pingRole(ctx, arg):
-    roleRawID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
-    if not roleRawID:                               # will be empty if @everyone/@here or if no mention (duh)
-        logger.warning(f"User '{ctx.author.name}' tried to ping with empty roleRawID (@everone/@here/no mention) in channel '{ctx.channel.name}'")
+    _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
+    if not _raw_role_ID:                               # will be empty if @everyone/@here or if no mention (duh)
+        logger.warning(f"User '{ctx.author.name}' tried to ping with empty _raw_role_ID (@everone/@here/no mention) in channel '{ctx.channel.name}'")
         await ctx.send("Make sure to put @role and a spacebar behind, so it looks like a ping. \nI wont ping @ everyone or @ here.", reference=ctx.message)
         return
 
-    roleName = get(ctx.guild.roles, id=roleRawID[0])
+    _roleName = get(ctx.guild.roles, id=_raw_role_ID[0])
     
-    if roleName in ctx.author.roles:
-        logger.info(f"Pinging role '{roleName}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send('<@&' + str(roleRawID[0]) + '>', reference=ctx.message)
+    if _roleName in ctx.author.roles:
+        logger.info(f"Pinging role '{_roleName}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+        await ctx.send('<@&' + str(_raw_role_ID[0]) + '>', reference=ctx.message)
     else :
-        logger.warning(f"User '{ctx.author.name}' tried to ping role '{roleName}' in channel '{ctx.channel.name}', but they don't have that role")
+        logger.warning(f"User '{ctx.author.name}' tried to ping role '{_roleName}' in channel '{ctx.channel.name}', but they don't have that role")
         await ctx.send('You need to have the role yourself to have me ping it!')
 
 
@@ -245,12 +221,34 @@ gives the mentioned users pfp
 
 """
 
-
 @bot.command(aliases=['av'])
 async def avatar(ctx):
-    for user in ctx.message.mentions:
-        logger.info(f"Showing avatar from user '{user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send(user.avatar_url)
+    for _user in ctx.message.mentions:
+        logger.info(f"Showing avatar from user '{_user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+        await ctx.send(_user.avatar_url)
+
+@bot.command()
+async def cat(ctx, arg='UwU'):
+    # Sauce: https://http.cat
+    _valid_http_status_codes = [
+     "100", "101", "102", "200", "201", "202", "203", "204", "206",
+     "207", "300", "301", "302", "303", "304", "305", "307", "308",
+     "400", "401", "402", "403", "404", "405", "406", "407", "408",
+     "409", "410", "411", "412", "413", "414", "415", "416", "417",
+     "418", "420", "421", "422", "424", "425", "426", "429", "431",
+     "444", "450", "451", "497", "498", "499", "500", "501", "502",
+     "503", "504", "506", "507", "508", "509", "510", "511", "521",
+     "523", "525", "599"
+    ]
+
+    if arg in _valid_http_status_codes:
+        await ctx.send(f'https://http.cat/{arg}')
+        logger.info(f"Sent http-cat with statuscode '{arg}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+    else:
+        logger.warning(f"Invalid status code ({arg}) from user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+        await ctx.send('You must supply a valid numeric http status code!')
+        await ctx.send('https://http.cat/400')
+
 
 """
 
@@ -260,21 +258,20 @@ Also clears reaction-emojis that are not in the list from the message
 """
 async def get_role(payload):
     if payload.message_id in REACTION_ROLE_MSG_IDS.values():
-        guild = bot.get_guild(payload.guild_id)
-        if guild is None:
+        _guild = bot.get_guild(payload.guild_id)
+        if _guild is None:
             logger.error("No guild/server??")
             return
-
         try:
             return discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[payload.emoji.name])
         except KeyError:
-        print("Reaction roles: Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
-            channel = bot.get_channel(payload.channel_id)
-            logger.warning(f"User '{payload.member.name}' reacted with '{payload.emoji.name}' in channel '{channel.name}', but no role was found for that emoji. Removing reaction")
-            msg = await channel.fetch_message(payload.message_id)
-            for reaction in msg.reactions:
-                if str(reaction.emoji) == str(payload.emoji):
-                    await reaction.clear()
+            print("Reaction roles: Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
+            _channel = bot.get_channel(payload.channel_id)
+            logger.warning(f"User '{payload.member.name}' reacted with '{payload.emoji.name}' in channel '{_channel.name}', but no role was found for that emoji. Removing reaction")
+            _msg = await _channel.fetch_message(payload.message_id)
+            for _reaction in _msg.reactions:
+                if str(_reaction.emoji) == str(payload.emoji):
+                    await _reaction.clear()
                 print("Reaction Roles: Cleared reaction")
                 return
  
@@ -287,23 +284,23 @@ Also clears all reactions that are not corresponding to a role.
 """
 async def restore_reaction_roles():
     for channel_id in REACTION_ROLE_MSG_IDS.keys():
-        channel = bot.get_channel(channel_id)
-        if channel is None:
+        _channel = bot.get_channel(channel_id)
+        if _channel is None:
             logger.error(f"Could not restore reaction roles: channel_id '{channel_id}' not found. Quitting")
             return
 
         try:
-            msg = await channel.fetch_message(REACTION_ROLE_MSG_IDS[channel_id])
+            _msg = await _channel.fetch_message(REACTION_ROLE_MSG_IDS[channel_id])
         except Exception as e:
             logger.error(f"Could not fetch channel: {e}")
             return
 
-        guild = bot.get_guild(int(SERVER_ID))
+        _guild = bot.get_guild(int(SERVER_ID))
         for reaction in _msg.reactions:
             try:
-                role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
+                _role = discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
             except KeyError:
-                logger.warning(f"Role for Emoji '{reaction.emoji.name}' sent by user '{member.name}' in channel {channel.name} not found, removing reaction")
+                logger.warning(f"Role for Emoji '{reaction.emoji.name}' sent by user '{member.name}' in channel {_channel.name} not found, removing reaction")
                 await reaction.clear()
                 continue
 
@@ -322,10 +319,10 @@ async def restore_reaction_roles():
                         await reaction.clear()
                         print("Reaction roles restore: Cleared reaction")
                         continue
-                    if not role in member.roles:
+                    if not _role in member.roles:
                         logger.info(f"User '{member.name}' does not yet have the '{REACTION_ROLES_MAP[reaction.emoji]}' role, but has sent the reaction for it. Adding role now")
                         try:
-                            await member.add_roles(role)
+                            await member.add_roles(_role)
                         except discord.HTTPException:
                             logger.error("HTTPException")
                             pass
