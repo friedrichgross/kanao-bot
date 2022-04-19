@@ -238,19 +238,19 @@ async def restore_reaction_roles():
 
         for reaction in msg.reactions:
             try:
+                role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
+            except KeyError:
+                logging.warning(f"Role for Emoji '{reaction.emoji.name}' sent by user '{member.name}' in channel {channel.name} not found, removing reaction")
+                await reaction.clear()
+                continue
+
+            try:
                 async for member in reaction.users():
                     # Skip admins bc we don't want to get EVERY role all the time
                     if member.name in REACTION_ROLE_RESTORE_IGNORED_MEMBERS:
                         continue
 
                     # Check if user already has the role:
-                    try:
-                        role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
-                    except KeyError:
-                        logging.warning(f"Role for Emoji '{reaction.emoji.name}' sent by user '{member.name}' in channel {channel.name} not found, removing reaction")
-                        await reaction.clear()
-                        continue
-
                     if not role in member.roles:
                         logging.info(f"User '{member.name}' does not yet have the '{REACTION_ROLES_MAP[reaction.emoji]}' role, but has sent the reaction for it. Adding role now")
                         try:
