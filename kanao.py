@@ -4,6 +4,7 @@ Intent is to replace external bots in our FS Servers
 
 Licensed under GPL-3.0-only
 """
+from typing import Any
 
 import discord
 import os
@@ -29,12 +30,13 @@ get intents from discord, privileged intents are needed
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
-
 """
 
 Check for missed reactions while offline
 
 """
+
+
 @bot.event
 async def on_ready():
     logger.info(f'{bot.user} has connected to Discord')
@@ -51,13 +53,14 @@ async def on_ready():
 Selfroles add
 
 """
+
 @bot.event
 async def on_raw_reaction_add(payload):
-    role = await get_role(payload)
-    if role is not None:
+    _role = await get_role(payload)
+    if _role is not None:
         try:
-            await payload.member.add_roles(role)
-            logger.info(f"Added role '{role.name}' to user '{payload.member.name}'")
+            await payload.member.add_roles(_role)
+            logger.info(f"Added role '{_role.name}' to user '{payload.member.name}'")
         except discord.HTTPException:
             logger.error("HTTPException")
             payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
@@ -90,13 +93,16 @@ async def on_raw_reaction_remove(payload):
 """
 
 check if a message tries to role mention without using k!pingRole
-advise user if thats the case
+advise user if that's the case
 Extensible for further message checks
 
 """
+
+
 @bot.event
 async def on_message(message):
-    if message.author.bot: return
+    if message.author.bot:
+        return
     ctx = await bot.get_context(message)
     if ctx.valid:
         await bot.process_commands(message)
@@ -106,11 +112,53 @@ async def on_message(message):
             logger.warning(f"User {ctx.author.name} tried to use raw role mentions without permissions in channel '{ctx.channel.name}'")
             await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
 
-"""
-
-help command 
 
 """
+log message edits
+will not be called if the message isn't in the msg cache (anymore). 
+the msg cache, by default is 5k, which i deem enough.
+otherwise, on_raw_message_edit is recommended, or raising Client.max_messages
+
+"""
+
+
+@bot.event
+async def on_message_edit(before, after):
+    if before.author.bot:
+        return
+    _editLogChannel = bot.get_channel(MESSAGE_EDIT_LOG)
+    print(_editLogChannel)
+    await _editLogChannel.send("```EDIT EVENT:\n\n" + "User: " + before.author.name + "\n\n" +
+                        "Before: " + before.content + "\n\n" +
+                        "After: " + after.content + "```")
+
+""" 
+
+message delete event
+same things as with on_message_edit apply
+
+"""
+@bot.event
+async def on_message_delete(message):
+    _editLogChannel = bot.get_channel(MESSAGE_EDIT_LOG)
+    await _editLogChannel.send("```MSG DELETE EVENT:\n\n" + "User: " + message.author.name + "\n\n" +
+                        "Channel: " + message.channel.name + "\n"
+                        "Message: " + message.content + "```")
+
+@bot.event
+async def on_raw_bulk_message_delete(payload):
+    _modLogChannel = bot.get_channel(MOD_LOG)
+    _eventChannel = bot.get_channel(payload.channel_id)
+    try:
+        await _modLogChannel.send("```!! BULK DELETE EVENT !!" + "\n\n" + "Channel :" + _eventChannel.name + "\n\n"
+                                 "Trying to get possibly cached messages: ```")
+
+        for msg in payload.cached_messages:
+            await _modLogChannel.send("```" + msg.author.name + ":\n" + msg.content + "\n" + "```")
+
+    except:
+        await _modLogChannel.send("Failed getting any cached messages.")
+
 @bot.command(aliases=['h'])
 async def help(ctx):
     logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
@@ -119,11 +167,6 @@ async def help(ctx):
                     'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
                     '```', reference=ctx.message)
 
-"""
-
-http-cat command 
-
-"""
 @bot.command()
 async def cat(ctx, arg='UwU'):
     # Sauce: https://http.cat
@@ -152,6 +195,8 @@ allows purging of up to 100 messages. only mods and admins.
 factors in the commanding messages automatically 
 
 """
+
+
 @bot.command()
 @commands.has_any_role("Moderator", "Admin")
 async def purge(ctx, arg):
@@ -174,6 +219,8 @@ method to make the user use the bot to ping roles.
 this ensures we can log pings to roles, and that people only ping roles they have themselves.
 
 """
+
+
 @bot.command(aliases=['pr'])
 async def pingRole(ctx, arg):
     roleRawID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
@@ -191,11 +238,14 @@ async def pingRole(ctx, arg):
         logger.warning(f"User '{ctx.author.name}' tried to ping role '{roleName}' in channel '{ctx.channel.name}', but they don't have that role")
         await ctx.send('You need to have the role yourself to have me ping it!')
 
+
 """
 
 gives the mentioned users pfp
 
 """
+
+
 @bot.command(aliases=['av'])
 async def avatar(ctx):
     for user in ctx.message.mentions:
@@ -216,15 +266,18 @@ async def get_role(payload):
             return
 
         try:
-            return discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[payload.emoji.name])
+            return discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[payload.emoji.name])
         except KeyError:
+        print("Reaction roles: Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
             channel = bot.get_channel(payload.channel_id)
             logger.warning(f"User '{payload.member.name}' reacted with '{payload.emoji.name}' in channel '{channel.name}', but no role was found for that emoji. Removing reaction")
             msg = await channel.fetch_message(payload.message_id)
             for reaction in msg.reactions:
                 if str(reaction.emoji) == str(payload.emoji):
                     await reaction.clear()
-            return
+                print("Reaction Roles: Cleared reaction")
+                return
+ 
 
 """
 
@@ -246,8 +299,7 @@ async def restore_reaction_roles():
             return
 
         guild = bot.get_guild(int(SERVER_ID))
-
-        for reaction in msg.reactions:
+        for reaction in _msg.reactions:
             try:
                 role = discord.utils.get(guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
             except KeyError:
@@ -262,11 +314,18 @@ async def restore_reaction_roles():
                         continue
 
                     # Check if user already has the role:
+                    try:
+                       _role = discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
+                    except KeyError:
+                        print(
+                            "Reaction roles restore: Role for Emoji '" + reaction.emoji.name + "' not found, removing reaction.")
+                        await reaction.clear()
+                        print("Reaction roles restore: Cleared reaction")
+                        continue
                     if not role in member.roles:
                         logger.info(f"User '{member.name}' does not yet have the '{REACTION_ROLES_MAP[reaction.emoji]}' role, but has sent the reaction for it. Adding role now")
                         try:
                             await member.add_roles(role)
-                            logger.info(f"Added role '{role.name}' to user '{member.name}'")
                         except discord.HTTPException:
                             logger.error("HTTPException")
                             pass
