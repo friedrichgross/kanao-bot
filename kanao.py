@@ -7,7 +7,6 @@ Licensed under GPL-3.0-only
 
 import discord
 import os
-import re
 import logging
 from dotenv import load_dotenv
 from discord.ext import commands
