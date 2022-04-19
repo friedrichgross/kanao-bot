@@ -45,6 +45,11 @@ async def on_ready():
     logging.info(f'{bot.user} has finished initialising')
     await bot.change_presence(activity=discord.Game(name="k!help"))
 
+"""
+
+Selfroles add
+
+"""
 @bot.event
 async def on_raw_reaction_add(payload):
     role = await get_role(payload)
@@ -57,6 +62,11 @@ async def on_raw_reaction_add(payload):
             payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
             pass
 
+"""
+
+Selfroles remove
+
+"""
 @bot.event
 async def on_raw_reaction_remove(payload):
     role = await get_role(payload)
