@@ -40,10 +40,10 @@ Check for missed reactions while offline
 async def on_ready():
     logger.info(f'{bot.user} has connected to Discord')
     if SERVER_ID is not None:
-        logger.info("Checking if we missed any selfroles while offline")
+        logger.info("Checking if we missed any reaction roles while offline")
         await restore_reaction_roles()
     else:
-        logger.warning("No SERVER_ID set, skipping selfrole restoration")
+        logger.warning("No SERVER_ID set, skipping reaction role restoration")
     logger.info(f'{bot.user} has finished initialising')
     await bot.change_presence(activity=discord.Game(name="k!help"))
 
@@ -171,7 +171,6 @@ allows purging of up to 100 messages. only mods and admins.
 factors in the commanding messages automatically 
 
 """
-
 
 @bot.command()
 @commands.has_any_role("Moderator", "Admin")
