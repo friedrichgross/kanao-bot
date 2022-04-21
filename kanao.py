@@ -33,74 +33,8 @@ bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 load functionality that is defined in other modules
 """
 bot.load_extension("roles")
+bot.load_extension("message_events")
 
-"""
-
-check if a message tries to role mention without using k!pingRole
-advise user if that's the case
-Extensible for further message checks
-
-"""
-
-
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-    _ctx = await bot.get_context(message)
-    if _ctx.valid:
-        await bot.process_commands(message)
-        return
-    if _ctx.message.raw_role_mentions:
-        if not _ctx.author.guild_permissions.mention_everyone:
-            logger.warning(f"User {_ctx.author.name} tried to use raw role mentions without permissions in channel '{_ctx.channel.name}'")
-            await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
-
-
-"""
-log message edits
-will not be called if the message isn't in the msg cache (anymore). 
-the msg cache, by default is 5k, which i deem enough.
-otherwise, on_raw_message_edit is recommended, or raising Client.max_messages
-
-"""
-
-
-@bot.event
-async def on_message_edit(before, after):
-    if before.author.bot:
-        return
-    _editLogChannel = bot.get_channel(MESSAGE_EDIT_LOG)
-    print(_editLogChannel)
-    await _editLogChannel.send("```EDIT EVENT:\n\n" + "User: " + before.author.name + "\n\n" +
-                        "Before: " + before.content + "\n\n" +
-                        "After: " + after.content + "```")
-
-""" 
-
-message delete event
-same things as with on_message_edit apply
-
-"""
-@bot.event
-async def on_message_delete(message):
-    _editLogChannel = bot.get_channel(MESSAGE_EDIT_LOG)
-    await _editLogChannel.send("```MSG DELETE EVENT:\n\n" + "User: " + message.author.name + "\n\n" +
-                        "Channel: " + message.channel.name + "\n"
-                        "Message: " + message.content + "```")
-
-@bot.event
-async def on_raw_bulk_message_delete(payload):
-    _modLogChannel = bot.get_channel(MOD_LOG)
-    _eventChannel = bot.get_channel(payload.channel_id)
-    try:
-        await _modLogChannel.send("```!! BULK DELETE EVENT !!" + "\n\n" + "Channel :" + _eventChannel.name + "\n\n"
-                                 "Trying to get possibly cached messages: ```")
-        for _msg in payload.cached_messages:
-            await _modLogChannel.send("```" + _msg.author.name + ":\n" + _msg.content + "\n" + "```")
-
-    except:
-        await _modLogChannel.send("Failed getting any cached messages.")
 
 @bot.command(aliases=["h", "help"])
 async def custom_help(ctx):
