@@ -160,7 +160,7 @@ async def on_raw_bulk_message_delete(payload):
     except:
         await _modLogChannel.send("Failed getting any cached messages.")
 
-@bot.command(aliases=['h'])
+@bot.command(aliases=["h", "help"])
 async def custom_help(ctx):
     logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
     await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
@@ -328,7 +328,7 @@ async def restore_reaction_roles():
             return
 
         _guild = bot.get_guild(int(SERVER_ID))
-        async for reaction in _msg.reactions:
+        for reaction in _msg.reactions:
             try:
                 _role = discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
             except KeyError:
