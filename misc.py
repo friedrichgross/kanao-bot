@@ -40,6 +40,7 @@ async def avatar(ctx):
         logger.info(f"Showing avatar from user '{_user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
         await ctx.send(_user.avatar_url)
 
+@commands.command()
 async def cat(ctx, arg='UwU'):
     # Sauce: https://http.cat
     _valid_http_status_codes = [
