@@ -295,7 +295,7 @@ async def restore_reaction_roles():
             return
 
         _guild = bot.get_guild(int(SERVER_ID))
-        async for reaction in _msg.reactions:
+        for reaction in _msg.reactions:
             try:
                 _role = discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
             except KeyError:
