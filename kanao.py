@@ -34,6 +34,7 @@ load functionality that is defined in other modules
 """
 bot.load_extension("roles")
 bot.load_extension("message_events")
+bot.load_extension("purge")
 
 
 @bot.command(aliases=["h", "help"])
@@ -44,28 +45,6 @@ async def custom_help(ctx):
                     'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
                     '```', reference=ctx.message)
 
-"""
-
-allows purging of up to 100 messages. only mods and admins.
-factors in the commanding messages automatically 
-
-"""
-
-@bot.command()
-@commands.has_any_role("Moderator", "Admin")
-async def purge(ctx, arg):
-    _to_delete = int(arg) + 1
-    _delete_list = []
-    async for message in ctx.history(limit=_to_delete):
-        _delete_list.append(message)
-    logger.info(f"Purging {_to_delete} messages for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-    await ctx.channel.delete_messages(_delete_list)
-
-@purge.error
-async def purge_error(ctx, error):
-    logger.error(f"Purge Error for user '{ctx.author.name}' in channel '{ctx.channel.name}': {error}")
-    if isinstance(error, commands.MissingAnyRole):
-        await ctx.send("No perms? 🤨", delete_after=10, reference=ctx.message)
 
 """
 
@@ -73,8 +52,6 @@ method to make the user use the bot to ping roles.
 this ensures we can log pings to roles, and that people only ping roles they have themselves.
 
 """
-
-
 @bot.command(aliases=['pr'])
 async def pingRole(ctx, arg):
     _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
