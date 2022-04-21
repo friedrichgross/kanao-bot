@@ -11,6 +11,7 @@ factors in the commanding messages automatically
 
 """
 
+@commands.command()
 @commands.has_any_role("Moderator", "Admin")
 async def purge(ctx, arg):
     _to_delete = int(arg) + 1
