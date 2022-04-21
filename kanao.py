@@ -5,16 +5,12 @@ Intent is to replace external bots in our FS Servers
 Licensed under GPL-3.0-only
 """
 
-from binhex import REASONABLY_LARGE
-from http import client
-from sys import audit
 import discord
 import os
 import logging
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.utils import get
-from numpy import character
 
 from reaction_roles import *
 
