@@ -14,6 +14,7 @@ import logging
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.utils import get
+from numpy import character
 
 from reaction_roles import *
 
@@ -196,14 +197,7 @@ async def ban(ctx,member:discord.Member,reason = None):
 async def ban_error(ctx,error):
     if isinstance(error,commands.MissingPermissions):
         await ctx.send("No perms? 🤨",delete_after=10,reference=ctx.message)
-
-@bot.command()
-@commands.has_any_role("Gruppenanführer🖤")
-async def unban(ctx,id:int):
-    user = await client.get_user(id)
-    await ctx.guild.unban(user)
-    await ctx.send(f'{user} Wurde unbanned, Bleib artig!')
-
+        
 @bot.command()
 #roles need to be ent-hardcoded here too
 @commands.has_any_role("Moderator","Gruppenanführer🖤")
