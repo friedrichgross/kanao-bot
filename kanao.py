@@ -157,7 +157,7 @@ async def on_raw_bulk_message_delete(payload):
     except:
         await _modLogChannel.send("Failed getting any cached messages.")
 
-@bot.command(aliases=['h'])
+@bot.command(aliases=["h", "help"])
 async def custom_help(ctx):
     logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
     await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
