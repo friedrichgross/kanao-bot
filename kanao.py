@@ -178,7 +178,7 @@ factors in the commanding messages automatically
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx,member:discord.Member,reason = None):
-    await member.kick(reason =  reason)
+    await member.kick(reason = reason)
     await ctx.send(f'{member} War ein Böser junge')
 
 @kick.error
@@ -193,14 +193,14 @@ async def ban(ctx,member:discord.Member,reason = None):
     await ctx.send(f'{member} War so ein Böser Junge, er musste Gebannt werden')
 
 @ban.error
-async def ban(ctx,error):
+async def ban_error(ctx,error):
     if isinstance(error,commands.MissingPermissions):
         await ctx.send("No perms? 🤨",delete_after=10,reference=ctx.message)
 
 @bot.command()
 @commands.has_any_role("Gruppenanführer🖤")
-async def unban(ctx,user_id):
-    user = await client.fetch_user(user_id)
+async def unban(ctx,id:int):
+    user = await client.get_user(id)
     await ctx.guild.unban(user)
     await ctx.send(f'{user} Wurde unbanned, Bleib artig!')
 
