@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import command
 import logging
@@ -16,14 +17,14 @@ Check for missed reactions while offline
 """
 def get_on_ready(bot):
     async def on_ready():
-        logger.info(f'{command.user} has connected to Discord')
+        logger.info(f'{bot.user} has connected to Discord')
         if SERVER_ID is not None:
             logger.info("Checking if we missed any reaction roles while offline")
             await restore_reaction_roles(bot)
         else:
             logger.warning("No SERVER_ID set, skipping reaction role restoration")
-        logger.info(f'{command.user} has finished initialising')
-        await command.change_presence(activity=discord.Game(name="k!help"))
+        logger.info(f'{bot.user} has finished initialising')
+        await bot.change_presence(activity=discord.Game(name="k!help"))
     return on_ready
 
 """
