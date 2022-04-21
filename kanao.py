@@ -5,6 +5,9 @@ Intent is to replace external bots in our FS Servers
 Licensed under GPL-3.0-only
 """
 
+from binhex import REASONABLY_LARGE
+from http import client
+from sys import audit
 import discord
 import os
 import logging
@@ -173,7 +176,37 @@ factors in the commanding messages automatically
 """
 
 @bot.command()
-@commands.has_any_role("Moderator", "Admin")
+@commands.has_permissions(kick_members=True)
+async def kick(ctx,member:discord.Member,reason = None):
+    await member.kick(reason =  reason)
+    await ctx.send(f'{member} War ein Böser junge')
+
+@kick.error
+async def kick_error(ctx,error):
+    if isinstance(error,commands.MissingPermissions):
+        await ctx.send("No perms? 🤨",delete_after=10,reference=ctx.message)
+
+@bot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(ctx,member:discord.Member,reason = None):
+    await member.ban(reason = reason)
+    await ctx.send(f'{member} War so ein Böser Junge, er musste Gebannt werden')
+
+@ban.error
+async def ban(ctx,error):
+    if isinstance(error,commands.MissingPermissions):
+        await ctx.send("No perms? 🤨",delete_after=10,reference=ctx.message)
+
+@bot.command()
+@commands.has_any_role("Gruppenanführer🖤")
+async def unban(ctx,user_id):
+    user = await client.fetch_user(user_id)
+    await ctx.guild.unban(user)
+    await ctx.send(f'{user} Wurde unbanned, Bleib artig!')
+
+@bot.command()
+#roles need to be ent-hardcoded here too
+@commands.has_any_role("Moderator","Gruppenanführer🖤")
 async def purge(ctx, arg):
     _to_delete = int(arg) + 1
     _delete_list = []
