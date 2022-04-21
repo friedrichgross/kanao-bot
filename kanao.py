@@ -196,7 +196,7 @@ async def ban_error(ctx,error):
         
 @bot.command()
 #roles need to be ent-hardcoded here too
-@commands.has_any_role("Moderator","Gruppenanführer🖤")
+@commands.has_any_role("Moderator","Admin")
 async def purge(ctx, arg):
     _to_delete = int(arg) + 1
     _delete_list = []
