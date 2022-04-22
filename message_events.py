@@ -20,7 +20,6 @@ def get_on_message(bot: Bot):
             return
         _ctx = await bot.get_context(message)
         if _ctx.valid:
-            await bot.process_commands(message)
             return
         if _ctx.message.raw_role_mentions:
             if not _ctx.author.guild_permissions.mention_everyone:
