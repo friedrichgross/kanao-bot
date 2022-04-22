@@ -43,7 +43,7 @@ async def custom_help(ctx):
     await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
                    'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' +
                     'k!pingRole @role to ping that role (make sure to put a spacebar after the role, ' +
-                    'so it looks like a ping!)\n' +
+                    'so it looks like a ping!)\n' + 'k!cat <http code> sends a http cat' +
                     '```', reference=ctx.message)
 
 

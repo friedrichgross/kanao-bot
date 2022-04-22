@@ -2,7 +2,6 @@ from discord.ext.commands import Bot
 from discord.ext import commands
 from discord.utils import get
 import logging
-from reaction_roles import MOD_ROLES
 
 
 logger = logging.getLogger(__name__)

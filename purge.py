@@ -1,7 +1,6 @@
 from discord.ext import commands
 from discord.ext.commands import Bot
 import logging
-from reaction_roles import MOD_ROLES
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ factors in the commanding messages automatically
 
 
 @commands.command()
-@commands.has_any_role(MOD_ROLES)
+@commands.has_any_role("Moderator", "Admin")
 async def purge(ctx, arg):
     _to_delete = int(arg) + 1
     _delete_list = []
