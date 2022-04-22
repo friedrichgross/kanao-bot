@@ -83,7 +83,7 @@ precursor to warning function, sends image of kanao_gun in response to an intole
 @commands.command(aliases=["gun", "gat"])
 @commands.has_any_role("Moderator", "Admin")
 async def kanao_gun(ctx):
-    if ctx.reference:
+    if ctx.message.reference:
         await ctx.send("https://media.discordapp.net/attachments/863157204705345566/965595907544469504/unknown.png",
                        reference=ctx.message.reference)
         await ctx.message.delete()
