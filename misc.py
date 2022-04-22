@@ -14,7 +14,7 @@ this ensures we can log pings to roles, and that people only ping roles they hav
 """
 
 
-@commands.command(aliases=['pr'])
+@commands.command(aliases=['pr', 'pingRole'])
 async def ping_role(ctx):
     _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
     if not _raw_role_ID:                               # will be empty if @everyone/@here or if no mention (duh)
@@ -81,11 +81,11 @@ precursor to warning function, sends image of kanao_gun in response to an intole
 
 
 @commands.command(aliases=["gun", "gat"])
-@commands.has_any_role(MOD_ROLES)
+@commands.has_any_role("Moderator", "Admin")
 async def kanao_gun(ctx):
     if ctx.reference:
         await ctx.send("https://media.discordapp.net/attachments/863157204705345566/965595907544469504/unknown.png",
-                       reference=ctx.reference)
+                       reference=ctx.message.reference)
         await ctx.message.delete()
     else:
         await ctx.send("No reference provided", reference=ctx.message, delete_after=5)
