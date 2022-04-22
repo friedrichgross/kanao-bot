@@ -2,6 +2,8 @@ from discord.ext.commands import Bot
 from discord.ext import commands
 from discord.utils import get
 import logging
+from reaction_roles import MOD_ROLES
+
 
 logger = logging.getLogger(__name__)
 """
@@ -10,12 +12,16 @@ method to make the user use the bot to ping roles.
 this ensures we can log pings to roles, and that people only ping roles they have themselves.
 
 """
+
+
 @commands.command(aliases=['pr'])
-async def pingRole(ctx, arg):
+async def ping_role(ctx):
     _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
     if not _raw_role_ID:                               # will be empty if @everyone/@here or if no mention (duh)
-        logger.warning(f"User '{ctx.author.name}' tried to ping with empty _raw_role_ID (@everone/@here/no mention) in channel '{ctx.channel.name}'")
-        await ctx.send("Make sure to put @role and a spacebar behind, so it looks like a ping. \nI wont ping @ everyone or @ here.", reference=ctx.message)
+        logger.warning(f"User '{ctx.author.name}' tried to ping with empty _raw_role_ID " +
+                       f"(@everyone/@here/no mention) in channel '{ctx.channel.name}'")
+        await ctx.send("Make sure to put @role and a space bar behind, so it looks like a ping. \n" +
+                       "I wont ping @ everyone or @ here.", reference=ctx.message)
         return
 
     _roleName = get(ctx.guild.roles, id=_raw_role_ID[0])
@@ -24,8 +30,9 @@ async def pingRole(ctx, arg):
         logger.info(f"Pinging role '{_roleName}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
         await ctx.send('<@&' + str(_raw_role_ID[0]) + '>', reference=ctx.message)
     else :
-        logger.warning(f"User '{ctx.author.name}' tried to ping role '{_roleName}' in channel '{ctx.channel.name}', but they don't have that role")
-        await ctx.send('You need to have the role yourself to have me ping it!')
+        logger.warning(f"User '{ctx.author.name}' tried to ping role '{_roleName}' in channel '{ctx.channel.name}', " +
+                       f"but they don't have that role")
+        await ctx.send('You need to have the role yourself to have me ping it!', reference=ctx.message)
 
 
 """
@@ -34,11 +41,13 @@ gives the mentioned users pfp
 
 """
 
+
 @commands.command(aliases=['av'])
 async def avatar(ctx):
     for _user in ctx.message.mentions:
         logger.info(f"Showing avatar from user '{_user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send(_user.avatar_url)
+        await ctx.send(_user.avatar_url, reference=ctx.message)
+
 
 @commands.command()
 async def cat(ctx, arg='UwU'):
@@ -63,7 +72,34 @@ async def cat(ctx, arg='UwU'):
         await ctx.send('https://http.cat/400')
 
 
+""" 
+
+precursor to warning function, sends image of kanao_gun in response to an intolerable message
+(yes i was bored)
+
+"""
+
+
+@commands.command(aliases=["gun", "gat"])
+@commands.has_any_role(MOD_ROLES)
+async def kanao_gun(ctx):
+    if ctx.reference:
+        await ctx.send("https://media.discordapp.net/attachments/863157204705345566/965595907544469504/unknown.png",
+                       reference=ctx.reference)
+        await ctx.message.delete()
+    else:
+        await ctx.send("No reference provided", reference=ctx.message, delete_after=5)
+
+
+@kanao_gun.error
+async def kanao_gun_error(ctx, error):
+    logger.error(f"Kanao Gun Error for user '{ctx.author.name}' in channel '{ctx.channel.name}': {error}")
+    if isinstance(error, commands.MissingAnyRole):
+        await ctx.send("No perms? 🤨", delete_after=10, reference=ctx.message)
+
+
 def setup(bot: Bot):
-    bot.add_command(pingRole)
+    bot.add_command(ping_role)
     bot.add_command(avatar)
     bot.add_command(cat)
+    bot.add_command(kanao_gun)

@@ -41,9 +41,11 @@ bot.load_extension("misc")
 async def custom_help(ctx):
     logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
     await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
-                    'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' + 
-                    'k!pingRole @role to ping that role (make sure to put a spacebar after the role, so it looks like a ping!)\n' + 
+                   'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' +
+                    'k!pingRole @role to ping that role (make sure to put a spacebar after the role, ' +
+                    'so it looks like a ping!)\n' +
                     '```', reference=ctx.message)
+
 
 def main():
     logging.basicConfig(format='%(asctime)s %(levelname)s - [%(funcName)s() @ %(module)s.py:%(lineno)d] %(message)s', datefmt='%d-%m-%y %H:%M:%S', level=logging.INFO)
