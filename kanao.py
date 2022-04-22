@@ -31,7 +31,7 @@ bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
 
 load functionality that is defined in other modules
 """
-#bot.load_extension("roles")
+bot.load_extension("roles")
 bot.load_extension("message_events")
 bot.load_extension("purge")
 bot.load_extension("misc")
