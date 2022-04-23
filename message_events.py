@@ -8,7 +8,9 @@ from reaction_roles import *
 logger = logging.getLogger(__name__)
 
 
-class MessageEvents(Cog):
+class MessageEvents(Cog,
+    description="Events, that relate to messages.",
+):
 
     def __init__(self, bot: Bot):
         self.bot = bot
