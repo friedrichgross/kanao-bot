@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
+from discord.ext.commands import Cog
 from discord.ext.commands import command
 import logging
 
@@ -10,36 +11,37 @@ from reaction_roles import *
 
 logger = logging.getLogger(__name__)
 
-"""
 
-Check for missed reactions while offline
+class Roles(Cog):
 
-"""
+    def __init__(self, bot: Bot):
+        self.bot = bot
 
+    """
 
-def get_on_ready(bot):
-    async def on_ready():
-        logger.info(f'{bot.user} has connected to Discord')
+    Check for missed reactions while offline
+
+    """
+    @commands.Cog.listener()
+    async def on_ready(self):
+        logger.info(f'{self.bot.user} has connected to Discord')
         if SERVER_ID is not None:
             logger.info("Checking if we missed any reaction roles while offline")
-            await restore_reaction_roles(bot)
+            await restore_reaction_roles(self.bot)
         else:
             logger.warning("No SERVER_ID set, skipping reaction role restoration")
-        logger.info(f'{bot.user} has finished initialising')
-        await bot.change_presence(activity=discord.Game(name="k!help"))
-    return on_ready
+        logger.info(f'{self.bot.user} has finished initialising')
+        await self.bot.change_presence(activity=discord.Game(name="k!help"))
 
 
-"""
+    """
 
-Reaction roles add
+    Reaction roles add
 
-"""
-
-
-def get_on_raw_reaction_add(bot: Bot):
-    async def on_raw_reaction_add(payload):
-        _role = await get_role(bot, payload)
+    """
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        _role = await get_role(self.bot, payload)
         if _role is not None:
             try:
                 await payload.member.add_roles(_role)
@@ -48,19 +50,16 @@ def get_on_raw_reaction_add(bot: Bot):
                 logger.error("HTTPException")
                 payload.channel.send("It appears the discord API is not available.\nPlease contact an admin if the problem persists.", delete_after=30)
                 pass
-    return on_raw_reaction_add
 
 
-"""
+    """
 
-Reaction roles remove
+    Reaction roles remove
 
-"""
-
-
-def get_on_raw_reaction_remove(bot):
-    async def on_raw_reaction_remove(payload: RawReactionActionEvent):
-        _role = await get_role(bot, payload)
+    """
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: RawReactionActionEvent):
+        _role = await get_role(self.bot, payload)
 
         if _role is not None:
             try:
@@ -78,7 +77,6 @@ def get_on_raw_reaction_remove(bot):
                                      "Please contact an admin if the problem persists.", delete_after=30)
 
                 pass
-    return on_raw_reaction_remove
 
 """
 
@@ -86,8 +84,6 @@ Retrieves a role for a given reaction by looking up the emoji in the REACTION_RO
 Also clears reaction-emojis that are not in the list from the message
 
 """
-
-
 async def get_role(bot: Bot, payload):
     if payload.message_id in REACTION_ROLE_MSG_IDS.values():
         _guild = bot.get_guild(payload.guild_id)
@@ -113,8 +109,6 @@ Checks if all users who reacted to the selfroles-msg have the corresponding role
 Also clears all reactions that are not corresponding to a role.
 
 """
-
-
 async def restore_reaction_roles(bot: Bot):
     for channel_id in REACTION_ROLE_MSG_IDS.keys():
         _channel = bot.get_channel(channel_id)
@@ -165,6 +159,4 @@ async def restore_reaction_roles(bot: Bot):
 
 
 def setup(bot: Bot) -> None:
-    bot.add_listener(get_on_ready(bot))
-    bot.add_listener(get_on_raw_reaction_add(bot))
-    bot.add_listener(get_on_raw_reaction_remove(bot))
+    bot.add_cog(Roles(bot))
