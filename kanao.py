@@ -25,7 +25,14 @@ get intents from discord, privileged intents are needed
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix='k!', intents=intents, help_command=None)
+bot = commands.Bot(
+        command_prefix='k!',
+        intents=intents,
+        description="Hello! I'm Kanao, your friendly mod bot.",
+        help_command=commands.DefaultHelpCommand(
+            no_category="Other",
+        ),
+)
 
 """
 
@@ -35,16 +42,6 @@ bot.load_extension("roles")
 bot.load_extension("message_events")
 bot.load_extension("purge")
 bot.load_extension("misc")
-
-
-@bot.command(aliases=["h", "help"])
-async def custom_help(ctx):
-    logger.info(f"User '{ctx.author.name}' used the help command in channel '{ctx.channel.name}'")
-    await ctx.send('```' + 'k!av @mention to get someones pfp\n' +
-                   'k!purge n to delete the last n+1 messages (mod+ only, <= 100 max) \n' +
-                    'k!pingRole @role to ping that role (make sure to put a spacebar after the role, ' +
-                    'so it looks like a ping!)\n' + 'k!cat <http code> sends a http cat' +
-                    '```', reference=ctx.message)
 
 
 def main():
