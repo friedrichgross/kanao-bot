@@ -5,7 +5,7 @@ from reaction_roles import *
 import logging
 
 logger = logging.getLogger(__name__)
-_defaultreason = "No Reason has been given" 
+_defaultreason = "No Reason has been given"
 """
 Use k!kick @user reason to kick someone using kanao
 """
@@ -18,12 +18,14 @@ async def kick(ctx,member:Member,*,_reason = None):
     _editLogChannel = ctx.bot.get_channel(MOD_LOG)
     logger.info(f'User {ctx.author.name} Kicked : {member}.')
     await _editLogChannel.send(f'user {ctx.author.name} has kicked user {member}')
-    await member.kick(_reason)
+    #reason has to be supplied with reason = _reason, due to the function not working otherwise
+    #same with ban
+    await member.kick(reason = _reason)
     await ctx.send(f'{member} has been kicked')
 
 @kick.error
 async def kick_error(ctx,error):
-    logger.error(f'Kick error for User: {ctx.author.name}, who tried to kick {Member}')
+    logger.error(f'Kick error for User: {ctx.author.name}, who tried to kick {ctx}')
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("No Perms? ", delete_after = 10, refernce=ctx.message)
 """
@@ -38,7 +40,7 @@ async def ban(ctx,member:Member,*,_reason = None):
     _editLogChannel = ctx.bot.get_channel(MOD_LOG)
     logger.info(f'user {ctx.author.name} has banned user {member}')
     await _editLogChannel.send(f'user {ctx.author.name} has banned user {member}')
-    await member.ban(_reason)
+    await member.ban(reason = _reason)
     await ctx.send(f'{member} has been banned')
 
 @ban.error
