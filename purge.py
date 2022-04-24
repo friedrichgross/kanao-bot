@@ -6,7 +6,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Purge(Cog):
+class Purge(Cog,
+        description="Provide the purge command to delete messages.",
+):
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -17,7 +19,11 @@ class Purge(Cog):
     factors in the commanding messages automatically 
 
     """
-    @commands.command()
+    @commands.command(
+        help="Cleanup messages.",
+        description="Looks into the history and deletes the number of messages specified.",
+        usage="[number of messages]",
+    )
     @commands.has_any_role("Moderator", "Admin")
     async def purge(self, ctx, arg):
         _to_delete = int(arg) + 1

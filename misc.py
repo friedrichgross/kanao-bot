@@ -8,18 +8,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Misc(Cog):
+class Misc(Cog,
+        description="Some commands, that do are not part of a specific category.",
+):
 
 
     def __init__(self, bot: Bot):
         self.bot = bot
+
+
     """
 
     method to make the user use the bot to ping roles.
     this ensures we can log pings to roles, and that people only ping roles they have themselves.
 
     """
-    @commands.command(aliases=['pr', 'pingRole'])
+    @commands.command(
+            name="pingRole",
+            aliases=['pr'],
+            description="Ping the role that is mentioned in the message.",
+            help="Ping the mentioned role. Make sure to put a spacebar after the role, so it looks like a ping!",
+            brief="Ping a role.",
+            usage="[@role] <your text>",
+    )
     async def ping_role(self, ctx):
         _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
         if not _raw_role_ID:                               # will be empty if @everyone/@here or if no mention (duh)
@@ -45,14 +56,22 @@ class Misc(Cog):
     gives the mentioned users pfp
 
     """
-    @commands.command(aliases=['av'])
+    @commands.command(
+            aliases=['av'],
+            description="Gathers the link to someones profile picture to post it in the chat.",
+            # help not needed here
+            brief="See someones profile picture.",
+            usage="[@mention]",
+    )
     async def avatar(self, ctx):
         for _user in ctx.message.mentions:
             logger.info(f"Showing avatar from user '{_user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
             await ctx.send(_user.avatar_url, reference=ctx.message)
 
 
-    @commands.command()
+    @commands.command(
+            help="Send an HTTP cat.",
+    )
     async def cat(self, ctx, arg='UwU'):
         # Sauce: https://http.cat
         _valid_http_status_codes = [
@@ -81,7 +100,11 @@ class Misc(Cog):
     (yes i was bored)
 
     """
-    @commands.command(aliases=["gun", "gat"])
+    @commands.command(
+            name="gun",
+            aliases=["kanao_gun", "gat"],
+            help="Gun.",
+    )
     @commands.has_any_role("Moderator", "Admin")
     async def kanao_gun(self, ctx):
         if ctx.message.reference:
