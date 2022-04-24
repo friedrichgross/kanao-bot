@@ -20,7 +20,12 @@ class Purge(Cog):
     @commands.command()
     @commands.has_any_role("Moderator", "Admin")
     async def purge(self, ctx, arg):
-        _to_delete = int(arg) + 1
+        try:
+            _to_delete = int(arg) + 1
+        except ValueError:
+            logger.warning(f"Purge error: Could not convert '{arg}' into an integer...")
+            await ctx.send(f"I tried, but I couldn't convert `{arg}` into an integer... 😭", delete_after=10)
+            return
         _delete_list = []
         async for message in ctx.history(limit=_to_delete):
             _delete_list.append(message)
