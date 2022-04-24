@@ -100,7 +100,11 @@ class Misc(Cog,
     (yes i was bored)
 
     """
-    @commands.command(aliases=["gun", "gat"])
+    @commands.command(
+            name="gun",
+            aliases=["kanao_gun", "gat"],
+            help="Gun.",
+    )
     @commands.has_any_role("Moderator", "Admin")
     async def kanao_gun(self, ctx):
         if ctx.message.reference:
