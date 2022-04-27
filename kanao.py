@@ -35,6 +35,7 @@ bot.load_extension("roles")
 bot.load_extension("message_events")
 bot.load_extension("purge")
 bot.load_extension("misc")
+bot.load_extension("kick_ban")
 
 
 @bot.command(aliases=["h", "help"])
