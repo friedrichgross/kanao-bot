@@ -1,5 +1,3 @@
-from discord.ext.commands import Bot
-from discord.ext import commands
 import discord
 import logging
 
@@ -84,7 +82,7 @@ async def kanao_gun(interaction, msg: discord.Message):
 @kanao_gun.error
 async def kanao_gun_error(interaction, error):
     logger.error(f"Kanao Gun Error for user '{interaction.user.name}' in channel '{interaction.channel.name}': {error}")
-    if isinstance(error, commands.MissingAnyRole):
+    if isinstance(error, discord.app_commands.MissingAnyRole):
         await interaction.response.send_message("No perms? 🤨", ephemeral=True)
 
 
