@@ -1,30 +1,23 @@
-from discord.ext.commands import Bot
 import logging
-
 from reaction_roles import *
 
 logger = logging.getLogger(__name__)
 
 """
 
-check if a message tries to role mention without using k!pingRole
+check if a message tries to role mention without using /ping
 advise user if that's the case
 Extensible for further message checks
 
 """
-
-
-def get_on_message(bot: Bot):
+def get_on_message(bot):
     async def on_message(message):
         if message.author.bot:
             return
-        _ctx = await bot.get_context(message)
-        if _ctx.valid:
-            return
-        if _ctx.message.raw_role_mentions:
-            if not _ctx.author.guild_permissions.mention_everyone:
-                logger.warning(f"User {_ctx.author.name} tried to use raw role mentions without permissions in channel '{_ctx.channel.name}'")
-                await message.channel.send("Normal users need to use the k!pingRole command to mention a role!", reference=message)
+        if message.raw_role_mentions:
+            if not message.author.guild_permissions.mention_everyone:
+                logger.warning(f"User {message.author.name} tried to use raw role mentions without permissions in channel '{message.channel.name}'")
+                await message.channel.send("Normal users need to use the /ping command to mention a role!", reference=message)
     return on_message
 
 
@@ -35,18 +28,16 @@ the msg cache, by default is 5k, which i deem enough.
 otherwise, on_raw_message_edit is recommended, or raising Client.max_messages
 
 """
-
-
-def get_on_message_edit(bot: Bot):
+def get_on_message_edit(bot):
     async def on_message_edit(before, after):
         if before.author.bot:
             return
         _editLogChannel = bot.get_channel(MESSAGE_EDIT_LOG)
-        print(_editLogChannel)
         await _editLogChannel.send("```EDIT EVENT:\n\n" + "User: " + before.author.name + "\n\n" +
                             "Before: " + before.content + "\n\n" +
                             "After: " + after.content + "```")
     return on_message_edit
+
 
 """ 
 
@@ -62,6 +53,7 @@ def get_on_message_delete(bot):
                             "Message: " + message.content + "```")
     return on_message_delete
 
+
 def get_on_raw_bulk_message_delete(bot):
     async def on_raw_bulk_message_delete(payload):
         _modLogChannel = bot.get_channel(MOD_LOG)
@@ -76,9 +68,10 @@ def get_on_raw_bulk_message_delete(bot):
             await _modLogChannel.send("Failed getting any cached messages.")
     return on_raw_bulk_message_delete
 
-def setup(bot: Bot):
-    bot.add_listener(get_on_message(bot))
-    bot.add_listener(get_on_message_edit(bot))
-    bot.add_listener(get_on_message_delete(bot))
-    bot.add_listener(get_on_raw_bulk_message_delete(bot))
+
+def setup(bot, cmd_tree):
+    bot.event(get_on_message(bot))
+    bot.event(get_on_message_edit(bot))
+    bot.event(get_on_message_delete(bot))
+    bot.event(get_on_raw_bulk_message_delete(bot))
 
