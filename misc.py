@@ -1,37 +1,30 @@
-from discord.ext.commands import Bot
-from discord.ext import commands
-from discord.utils import get
+import discord
 import logging
 
-
 logger = logging.getLogger(__name__)
+
+
 """
 
 method to make the user use the bot to ping roles.
 this ensures we can log pings to roles, and that people only ping roles they have themselves.
 
 """
-
-
-@commands.command(aliases=['pr', 'pingRole'])
-async def ping_role(ctx):
-    _raw_role_ID = ctx.message.raw_role_mentions       # this returns a LIST, not an INT
-    if not _raw_role_ID:                               # will be empty if @everyone/@here or if no mention (duh)
-        logger.warning(f"User '{ctx.author.name}' tried to ping with empty _raw_role_ID " +
-                       f"(@everyone/@here/no mention) in channel '{ctx.channel.name}'")
-        await ctx.send("Make sure to put @role and a space bar behind, so it looks like a ping. \n" +
-                       "I wont ping @ everyone or @ here.", reference=ctx.message)
+@discord.app_commands.command(name="ping", description="Pings a given Role in the current channel")
+@discord.app_commands.describe(role="The role you want to ping")
+async def ping_role(interaction: discord.Interaction, role: discord.Role):
+    if role.name == "@everyone":
+        logger.warning(f"User '{interaction.user.name}' tried to ping {role} in channel '{interaction.channel.name}'")
+        await interaction.response.send_message(f"Role '{role}' not pingable (I wont ping @everyone or @here)", ephemeral=True)
         return
 
-    _roleName = get(ctx.guild.roles, id=_raw_role_ID[0])
-    
-    if _roleName in ctx.author.roles:
-        logger.info(f"Pinging role '{_roleName}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send('<@&' + str(_raw_role_ID[0]) + '>', reference=ctx.message)
+    if role in interaction.user.roles:
+        logger.info(f"Pinging role '{role.name}' for user '{interaction.user.roles}' in channel '{interaction.channel.name}'")
+        await interaction.response.send_message('<@&' + str(role.id) + '>')
     else :
-        logger.warning(f"User '{ctx.author.name}' tried to ping role '{_roleName}' in channel '{ctx.channel.name}', " +
+        logger.warning(f"User '{interaction.user.name}' tried to ping role '{role.name}' in channel '{interaction.channel.name}', " +
                        f"but they don't have that role")
-        await ctx.send('You need to have the role yourself to have me ping it!', reference=ctx.message)
+        await interaction.response.send_message('You need to have the role yourself to have me ping it!', ephemeral=True)
 
 
 """
@@ -39,36 +32,38 @@ async def ping_role(ctx):
 gives the mentioned users pfp
 
 """
+@discord.app_commands.command(name="avatar", description="Postet den Avatar eines Nutzers im Channel")
+@discord.app_commands.describe(user="The user whos avatar should be shown")
+async def avatar(interaction, user: discord.User):
+    logger.info(f"Trying to show avatar from user '{user.name}' for user '{interaction.user.name}' in channel '{interaction.channel.name}'")
+    if user.avatar:
+        await interaction.response.send_message(user.avatar.url)
+    else:
+        logger.info(f"Failed to show avatar from '{user.name}' for user '{interaction.user.name}' in channel '{interaction.channel.name}' (No Avatar found)")
+        await interaction.response.send_message(f"User {user.name} has no avatar for me to show.", ephemeral=True)
 
 
-@commands.command(aliases=['av'])
-async def avatar(ctx):
-    for _user in ctx.message.mentions:
-        logger.info(f"Showing avatar from user '{_user}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send(_user.avatar_url, reference=ctx.message)
-
-
-@commands.command()
-async def cat(ctx, arg='UwU'):
+@discord.app_commands.command(name="cat", description="Postet eine HTTP-Status-Cat im Channel")
+@discord.app_commands.describe(code="HTTP Status Code to send")
+async def cat(interaction, code: int):
     # Sauce: https://http.cat
     _valid_http_status_codes = [
-     "100", "101", "102", "200", "201", "202", "203", "204", "206",
-     "207", "300", "301", "302", "303", "304", "305", "307", "308",
-     "400", "401", "402", "403", "404", "405", "406", "407", "408",
-     "409", "410", "411", "412", "413", "414", "415", "416", "417",
-     "418", "420", "421", "422", "424", "425", "426", "429", "431",
-     "444", "450", "451", "497", "498", "499", "500", "501", "502",
-     "503", "504", "506", "507", "508", "509", "510", "511", "521",
-     "523", "525", "599"
+     100, 101, 102, 200, 201, 202, 203, 204, 206,
+     207, 300, 301, 302, 303, 304, 305, 307, 308,
+     400, 401, 402, 403, 404, 405, 406, 407, 408,
+     409, 410, 411, 412, 413, 414, 415, 416, 417,
+     418, 420, 421, 422, 424, 425, 426, 429, 431,
+     444, 450, 451, 497, 498, 499, 500, 501, 502,
+     503, 504, 506, 507, 508, 509, 510, 511, 521,
+     523, 525, 599
     ]
 
-    if arg in _valid_http_status_codes:
-        await ctx.send(f'https://http.cat/{arg}')
-        logger.info(f"Sent http-cat with statuscode '{arg}' for user '{ctx.author.name}' in channel '{ctx.channel.name}'")
+    if code in _valid_http_status_codes:
+        await interaction.response.send_message(f'https://http.cat/{code}')
+        logger.info(f"Sent http-cat with statuscode '{code}' for user '{interaction.user.name}' in channel '{interaction.channel.name}'")
     else:
-        logger.warning(f"Invalid status code ({arg}) from user '{ctx.author.name}' in channel '{ctx.channel.name}'")
-        await ctx.send('You must supply a valid numeric http status code!')
-        await ctx.send('https://http.cat/400')
+        logger.warning(f"Invalid status code ({code}) from user '{interaction.user.name}' in channel '{interaction.channel.name}'")
+        await interaction.response.send_message(f"You must supply a valid numeric http status code! ``{code}`` is invalid. https://http.cat/400", ephemeral=True)
 
 
 """ 
@@ -77,28 +72,23 @@ precursor to warning function, sends image of kanao_gun in response to an intole
 (yes i was bored)
 
 """
-
-
-@commands.command(aliases=["gun", "gat"])
-@commands.has_any_role("Moderator", "Admin")
-async def kanao_gun(ctx):
-    if ctx.message.reference:
-        await ctx.send("https://media.discordapp.net/attachments/863157204705345566/965595907544469504/unknown.png",
-                       reference=ctx.message.reference)
-        await ctx.message.delete()
-    else:
-        await ctx.send("No reference provided", reference=ctx.message, delete_after=5)
+@discord.app_commands.context_menu(name="gun")
+@discord.app_commands.checks.has_any_role("Moderator", "Admin")
+async def kanao_gun(interaction, msg: discord.Message):
+    await msg.delete()
+    await interaction.response.send_message(f"<@{msg.author.id}> https://media.discordapp.net/attachments/863157204705345566/965595907544469504/unknown.png")
 
 
 @kanao_gun.error
-async def kanao_gun_error(ctx, error):
-    logger.error(f"Kanao Gun Error for user '{ctx.author.name}' in channel '{ctx.channel.name}': {error}")
-    if isinstance(error, commands.MissingAnyRole):
-        await ctx.send("No perms? 🤨", delete_after=10, reference=ctx.message)
+async def kanao_gun_error(interaction, error):
+    logger.error(f"Kanao Gun Error for user '{interaction.user.name}' in channel '{interaction.channel.name}': {error}")
+    if isinstance(error, discord.app_commands.MissingAnyRole):
+        await interaction.response.send_message("No perms? 🤨", ephemeral=True)
 
 
-def setup(bot: Bot):
-    bot.add_command(ping_role)
-    bot.add_command(avatar)
-    bot.add_command(cat)
-    bot.add_command(kanao_gun)
+def setup(bot, cmd_tree):
+    cmd_tree.add_command(ping_role)
+    cmd_tree.add_command(avatar)
+    cmd_tree.add_command(cat)
+    cmd_tree.add_command(kanao_gun)
+

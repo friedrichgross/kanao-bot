@@ -1,43 +1,16 @@
 import discord
-from discord.ext import commands
-from discord.ext.commands import Bot
-from discord.ext.commands import command
 import logging
-
-from discord.raw_models import RawReactionActionEvent
-
-from reaction_roles import *
 
 logger = logging.getLogger(__name__)
 
-"""
-
-Check for missed reactions while offline
-
-"""
-
-
-def get_on_ready(bot):
-    async def on_ready():
-        logger.info(f'{bot.user} has connected to Discord')
-        if SERVER_ID is not None:
-            logger.info("Checking if we missed any reaction roles while offline")
-            await restore_reaction_roles(bot)
-        else:
-            logger.warning("No SERVER_ID set, skipping reaction role restoration")
-        logger.info(f'{bot.user} has finished initialising')
-        await bot.change_presence(activity=discord.Game(name="k!help"))
-    return on_ready
-
+from reaction_roles import *
 
 """
 
 Reaction roles add
 
 """
-
-
-def get_on_raw_reaction_add(bot: Bot):
+def get_on_raw_reaction_add(bot):
     async def on_raw_reaction_add(payload):
         _role = await get_role(bot, payload)
         if _role is not None:
@@ -56,10 +29,8 @@ def get_on_raw_reaction_add(bot: Bot):
 Reaction roles remove
 
 """
-
-
 def get_on_raw_reaction_remove(bot):
-    async def on_raw_reaction_remove(payload: RawReactionActionEvent):
+    async def on_raw_reaction_remove(payload):
         _role = await get_role(bot, payload)
 
         if _role is not None:
@@ -80,15 +51,14 @@ def get_on_raw_reaction_remove(bot):
                 pass
     return on_raw_reaction_remove
 
+
 """
 
 Retrieves a role for a given reaction by looking up the emoji in the REACTION_ROLES_MAP list.
 Also clears reaction-emojis that are not in the list from the message
 
 """
-
-
-async def get_role(bot: Bot, payload):
+async def get_role(bot, payload):
     if payload.message_id in REACTION_ROLE_MSG_IDS.values():
         _guild = bot.get_guild(payload.guild_id)
         if _guild is None:
@@ -97,25 +67,23 @@ async def get_role(bot: Bot, payload):
         try:
             return discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[payload.emoji.name])
         except KeyError:
-            print("Reaction roles: Role for Emoji '" + payload.emoji.name + "' not found, removing reaction.")
             _channel = bot.get_channel(payload.channel_id)
-            logger.warning(f"User '{payload.member.name}' reacted with '{payload.emoji.name}' in channel '{_channel.name}', but no role was found for that emoji. Removing reaction")
+            logger.info(f"User '{payload.member.name}' reacted with '{payload.emoji.name}' in channel '{_channel.name}', but no role was found for that emoji. Removing reaction")
             _msg = await _channel.fetch_message(payload.message_id)
             for _reaction in _msg.reactions:
                 if str(_reaction.emoji) == str(payload.emoji):
                     await _reaction.clear()
-                print("Reaction Roles: Cleared reaction")
+                logger.info("Cleared reaction")
                 return
  
+
 """
 
 Checks if all users who reacted to the selfroles-msg have the corresponding role & gives it to them if they don't.
 Also clears all reactions that are not corresponding to a role.
 
 """
-
-
-async def restore_reaction_roles(bot: Bot):
+async def restore_reaction_roles(bot):
     for channel_id in REACTION_ROLE_MSG_IDS.keys():
         _channel = bot.get_channel(channel_id)
         if _channel is None:
@@ -147,10 +115,8 @@ async def restore_reaction_roles(bot: Bot):
                     try:
                        _role = discord.utils.get(_guild.roles, name=REACTION_ROLES_MAP[reaction.emoji])
                     except KeyError:
-                        print(
-                            "Reaction roles restore: Role for Emoji '" + reaction.emoji.name + "' not found, removing reaction.")
+                        logger.info(f"Role for Emoji '{reaction.emoji.name}' not found, removing reaction.")
                         await reaction.clear()
-                        print("Reaction roles restore: Cleared reaction")
                         continue
                     if not _role in member.roles:
                         logger.info(f"User '{member.name}' does not yet have the '{REACTION_ROLES_MAP[reaction.emoji]}' role, but has sent the reaction for it. Adding role now")
@@ -164,7 +130,7 @@ async def restore_reaction_roles(bot: Bot):
                 logger.error("HTTPException")
 
 
-def setup(bot: Bot) -> None:
-    bot.add_listener(get_on_ready(bot))
-    bot.add_listener(get_on_raw_reaction_add(bot))
-    bot.add_listener(get_on_raw_reaction_remove(bot))
+def setup(bot, cmd_tree):
+    bot.event(get_on_raw_reaction_add(bot))
+    bot.event(get_on_raw_reaction_remove(bot))
+
