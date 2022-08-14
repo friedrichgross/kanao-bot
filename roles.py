@@ -110,7 +110,12 @@ async def restore_reaction_roles(bot):
                     # Check if the User is a Member:
                     if _guild.get_member(member.id) is None:
                         logger.info(f"User '{member.name}' is not a Member. Removing his reaction")
-                        await reaction.remove(member)
+                        try:
+                            await reaction.remove(member)
+                        except discord.HTTPException:
+                            logger.error("HTTPException")
+                        except Exception as e:
+                            logger.error(e)
                         continue
 
                     # Skip admins bc we don't want to get EVERY role all the time
