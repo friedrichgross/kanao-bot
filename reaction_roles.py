@@ -67,6 +67,7 @@ REACTION_ROLES_MAP = {
     "🔢" : "algo-datenstruk",
     "🔬" : "theorie-info",
     "🖼️" : "bildverarbeitung",
+    "🎰" : "gui-prog",
 
     # Wahlfächer:
     "🌎" : "facheng",
