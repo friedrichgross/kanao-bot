@@ -67,6 +67,7 @@ REACTION_ROLES_MAP = {
     "🔢" : "algo-datenstruk",
     "🔬" : "theorie-info",
     "🖼️" : "bildverarbeitung",
+    "🎰" : "gui-prog",
 
     # Wahlfächer:
     "🌎" : "facheng",
@@ -80,5 +81,6 @@ REACTION_ROLES_MAP = {
     "⚖️" : "it-recht",
     "🏥" : "klinik-info",
     "🤦‍♂️" : "mgmt-skills",
+    "🤖" : "machine-learning",
 }
 
