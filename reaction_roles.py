@@ -80,5 +80,6 @@ REACTION_ROLES_MAP = {
     "⚖️" : "it-recht",
     "🏥" : "klinik-info",
     "🤦‍♂️" : "mgmt-skills",
+    "🤖" : "machine-learning",
 }
 
